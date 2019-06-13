@@ -51,6 +51,12 @@ void Game::runGame()
 		renderManager.Render(map, isFirst, shouldFlip);
 		isFirst = false;
 		SDL_Delay(30); //changing the number of fps
+		if (marksCount == filledMarks)
+		{
+			renderManager.gameWon();
+			SDL_Delay(5000);
+			loop = false;
+		}
 	}
 }
 
@@ -158,6 +164,13 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 			map[row - 1][col].state = PLAYER;
 			playerPos.y -= blockHeight;
 		}
+		else if (state == BOX) //if we get to this line, the box can be moved
+		{
+			if (map[row][col].onGoal)
+				--filledMarks;
+			if (map[row - 1][col].onGoal)
+				++filledMarks;
+		}
 	}
 	else if (direction == DOWN && map[row + 1][col].state != WALL &&
 		row * blockHeight + blockHeight < renderManager.getWindowHeight())
@@ -176,6 +189,13 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 			map[row + 1][col].state = PLAYER;
 			playerPos.y += blockHeight;
 		}
+		else if (state == BOX) //if we get to this line, the box can be moved
+		{
+			if (map[row][col].onGoal)
+				--filledMarks;
+			if (map[row + 1][col].onGoal)
+				++filledMarks;
+		}
 	}
 	else if (direction == LEFT && map[row][col - 1].state != WALL && col)
 	{
@@ -192,6 +212,13 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		{
 			map[row][col - 1].state = PLAYER;
 			playerPos.x -= blockWidth;
+		}
+		else if (state == BOX) //if we get to this line, the box can be moved
+		{
+			if (map[row][col].onGoal)
+				--filledMarks;
+			if (map[row][col - 1].onGoal)
+				++filledMarks;
 		}
 	}
 	else if (direction == RIGHT && map[row][col + 1].state != WALL &&
@@ -211,8 +238,16 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 			map[row][col + 1].state = PLAYER;
 			playerPos.x += blockWidth;
 		}
+		else if (state == BOX) //if we get to this line, the box can be moved
+		{
+			if (map[row][col].onGoal)
+				--filledMarks;
+			if (map[row][col + 1].onGoal)
+				++filledMarks;
+		}
 	}
 	else
 		return false;
 	map[row][col].state = FLOOR;
+	return true;
 }

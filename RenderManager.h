@@ -13,6 +13,7 @@ public:
 	~RenderManager() = default;
 
 	void Render(std::vector<std::vector<Block>>& map, bool isFirstRender, bool shouldFlip);
+	void gameWon();
 
 	unsigned int getWindowWidth() const;
 	unsigned int getWindowHeight() const;
