@@ -138,41 +138,6 @@ void Game::movePlayer(Direction direction)
 	unsigned int col = playerPos.x / blockHeight;
 
 	move(row, col, direction, PLAYER);
-	//bool onGoal = false;
-	//map[row][col].state = FLOOR;
-	//if (map[row][col].state == PLAYER && map[row][col].onGoal)
-	//{
-	//	map[row][col].onGoal = true;
-	//	onGoal = true;
-	//}
-	//
-	//if (direction == UP && row && map[row - 1][col].state != WALL)
-	//{
-	//	--row;
-	//	playerPos.y -= blockHeight;
-	//}
-	//else if (direction == DOWN && (playerPos.y + blockHeight < renderManager.getWindowHeight())
-	//	&& map[row + 1][col].state != WALL)
-	//{
-	//	++row;
-	//	playerPos.y += blockHeight;
-	//}
-	//else if (direction == LEFT && col && map[row][col - 1].state != WALL)
-	//{
-	//	--col;
-	//	playerPos.x -= blockWidth;
-	//}
-	//else if (direction == RIGHT && playerPos.x + blockWidth < renderManager.getWindowWidth()
-	//	&& map[row][col + 1].state != WALL)
-	//{
-	//	++col;
-	//	playerPos.x += blockWidth;
-	//}
-	//else
-	//{
-	//	map[row][col].onGoal = onGoal;
-	//}
-	//map[row][col].state = PLAYER;
 }
 
 bool Game::move(unsigned int row, unsigned int col, Direction direction, State state)
