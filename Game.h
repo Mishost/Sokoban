@@ -28,6 +28,7 @@ private:
 	void loadRow(const std::string line, unsigned int row);
 	void movePlayer(Direction direction);
 	bool move(unsigned int row, unsigned int col, Direction direction, State state);
+	bool levelIsValid();
 
 private:
 	std::vector<std::vector<Block>> map;
@@ -39,9 +40,9 @@ private:
 	int blockHeight; //the height of each block
 	RenderManager renderManager; //responsible for the rendering
 
+	unsigned int playerCount; //to check if the game has exactly one player
 	unsigned int boxCount;
 	unsigned int boxesOnPlace;
 	unsigned int marksCount;
-	unsigned int filledMarks;
 };
 #endif // !__GAME__HEADER__INCLUDED

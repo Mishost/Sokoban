@@ -138,6 +138,19 @@ void RenderManager::Render(std::vector<std::vector<Block>>& map, bool isFirstRen
 	}
 	SDL_RenderPresent(renderer);
 }
+void RenderManager::RenderInvalid()
+{
+	SDL_RenderClear(renderer);
+	std::string text = "The level is invalid.";
+	SDL_Surface* blendedText = TTF_RenderText_Blended(font, text.c_str(), textColor);
+	SDL_Texture* textTexture = SurfaceToTexture(blendedText);
+
+	SDL_Rect textRect = { sizeX / 4, sizeY / 4, 50, 50 };
+	SDL_QueryTexture(textTexture, NULL, NULL, &textRect.w, &textRect.h);
+	textRect.x -= 150;
+	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+	SDL_RenderPresent(renderer);
+}
 void RenderManager::gameWon()
 {
 	SDL_RenderClear(renderer);

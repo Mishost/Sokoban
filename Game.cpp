@@ -4,13 +4,17 @@ Game::Game(const std::string level)
 	:blockWidth(width)
 	,blockHeight(height)
 	,marksCount(0)
-	,filledMarks(0)
 	,boxCount(0)
 	,boxesOnPlace(0)
+	,playerCount(0)
 {
 	if (loadLevel(level))
-	{
 		renderManager.Render(map, 1, 0);
+	else
+	{
+		renderManager.RenderInvalid();
+		SDL_Delay(4000);
+		std::exit(-1);
 	}
 }
 
@@ -88,6 +92,7 @@ bool Game::loadLevel(const std::string level)
 		loadRow(current, blockRows++);
 	}
 	file.close();
+	return levelIsValid();
 }
 
 void Game::loadRow(const std::string line, unsigned int row)
@@ -106,12 +111,14 @@ void Game::loadRow(const std::string line, unsigned int row)
 			currState = PLAYER;
 			playerPos.x = blockWidth * i;
 			playerPos.y = blockHeight * row;
+			++playerCount;
 			break;
 		case '+':
 			currState = PLAYER;
 			onGoal = true;
 			playerPos.x = blockWidth * i;
 			playerPos.y = blockHeight * row;
+			++playerCount;
 			++marksCount;
 			break;
 		case '$':
@@ -124,7 +131,6 @@ void Game::loadRow(const std::string line, unsigned int row)
 			++boxCount;
 			++boxesOnPlace;
 			++marksCount;
-			++filledMarks;
 			break;
 		case '.':
 			currState = FLOOR;
@@ -254,5 +260,12 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 	else
 		return false;
 	map[row][col].state = FLOOR;
+	return true;
+}
+
+bool Game::levelIsValid()
+{
+	if (boxCount > marksCount || !boxCount || playerCount != 1)
+		return false;
 	return true;
 }
