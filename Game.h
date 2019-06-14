@@ -39,6 +39,8 @@ private:
 	int blockHeight; //the height of each block
 	RenderManager renderManager; //responsible for the rendering
 
+	unsigned int boxCount;
+	unsigned int boxesOnPlace;
 	unsigned int marksCount;
 	unsigned int filledMarks;
 };

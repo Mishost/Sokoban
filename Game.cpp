@@ -5,6 +5,8 @@ Game::Game(const std::string level)
 	,blockHeight(height)
 	,marksCount(0)
 	,filledMarks(0)
+	,boxCount(0)
+	,boxesOnPlace(0)
 {
 	if (loadLevel(level))
 	{
@@ -51,7 +53,7 @@ void Game::runGame()
 		renderManager.Render(map, isFirst, shouldFlip);
 		isFirst = false;
 		SDL_Delay(30); //changing the number of fps
-		if (marksCount == filledMarks)
+		if (boxCount == boxesOnPlace)
 		{
 			renderManager.gameWon();
 			SDL_Delay(5000);
@@ -114,10 +116,13 @@ void Game::loadRow(const std::string line, unsigned int row)
 			break;
 		case '$':
 			currState = BOX;
+			++boxCount;
 			break;
 		case '*':
 			currState = BOX;
 			onGoal = true;
+			++boxCount;
+			++boxesOnPlace;
 			++marksCount;
 			++filledMarks;
 			break;
@@ -167,9 +172,9 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
 			if (map[row][col].onGoal)
-				--filledMarks;
+				--boxesOnPlace; //--filledMarks;
 			if (map[row - 1][col].onGoal)
-				++filledMarks;
+				++boxesOnPlace; //++filledMarks;
 		}
 	}
 	else if (direction == DOWN && map[row + 1][col].state != WALL &&
@@ -192,9 +197,9 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
 			if (map[row][col].onGoal)
-				--filledMarks;
+				--boxesOnPlace; // --filledMarks;
 			if (map[row + 1][col].onGoal)
-				++filledMarks;
+				++boxesOnPlace; // ++filledMarks;
 		}
 	}
 	else if (direction == LEFT && map[row][col - 1].state != WALL && col)
@@ -216,9 +221,9 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
 			if (map[row][col].onGoal)
-				--filledMarks;
+				--boxesOnPlace; // --filledMarks;
 			if (map[row][col - 1].onGoal)
-				++filledMarks;
+				++boxesOnPlace; //++filledMarks;
 		}
 	}
 	else if (direction == RIGHT && map[row][col + 1].state != WALL &&
@@ -241,9 +246,9 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
 			if (map[row][col].onGoal)
-				--filledMarks;
+				--boxesOnPlace; //--filledMarks;
 			if (map[row][col + 1].onGoal)
-				++filledMarks;
+				++boxesOnPlace; //++filledMarks;
 		}
 	}
 	else
