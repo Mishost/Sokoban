@@ -9,11 +9,14 @@ Game::Game(const std::string level)
 	,playerCount(0)
 {
 	if (loadLevel(level))
+	{
 		renderManager.Render(map, 1, 0);
+		validateMap();
+	}
 	else
 	{
 		renderManager.RenderInvalid();
-		SDL_Delay(4000);
+		SDL_Delay(3000);
 		std::exit(-1);
 	}
 }
@@ -31,6 +34,24 @@ void Game::runGame()
 		{
 			if (event.type == SDL_QUIT)
 				loop = false;
+			else if (event.type == SDL_MOUSEBUTTONDOWN)
+			{
+				std::cout << event.button.x << ' ' << event.button.y << '\n';
+				if (event.button.x > blockCols * blockWidth ||
+					event.button.y > blockRows * blockHeight)
+					continue;
+				else if (findPath(event.button.x, event.button.y))
+				{
+					map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = FLOOR;
+					playerPos.x = event.button.x;
+					playerPos.y = event.button.y;
+					playerPos.x /= 50;
+					playerPos.x *= 50;
+					playerPos.y /= 50;
+					playerPos.y *= 50;
+					map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = PLAYER;
+				}
+			}
 			else if (event.type == SDL_KEYDOWN)
 			{
 				switch (event.key.keysym.sym)
@@ -60,7 +81,7 @@ void Game::runGame()
 		if (boxCount == boxesOnPlace)
 		{
 			renderManager.gameWon();
-			SDL_Delay(5000);
+			SDL_Delay(3000);
 			loop = false;
 		}
 	}
@@ -95,11 +116,22 @@ bool Game::loadLevel(const std::string level)
 	return levelIsValid();
 }
 
+void Game::validateMap()
+{
+	for (unsigned int i = 0; i < blockRows; ++i)
+	{
+		for (unsigned int j = map[i].size(); j < blockCols; ++j)
+			map[i].push_back(Block(i, j, FLOOR, false));
+	}
+}
+
 void Game::loadRow(const std::string line, unsigned int row)
 {
 	State currState;
 	bool onGoal = false;
 	unsigned int len = line.size();
+	if (len > blockCols)
+		blockCols = len;
 	for (unsigned int i = 0; i < len; ++i)
 	{
 		switch (line[i])
@@ -177,10 +209,10 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		}
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
-			if (map[row][col].onGoal)
-				--boxesOnPlace; //--filledMarks;
-			if (map[row - 1][col].onGoal)
-				++boxesOnPlace; //++filledMarks;
+			if (map[row][col].onMark)
+				--boxesOnPlace;
+			if (map[row - 1][col].onMark)
+				++boxesOnPlace;
 		}
 	}
 	else if (direction == DOWN && map[row + 1][col].state != WALL &&
@@ -202,10 +234,10 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		}
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
-			if (map[row][col].onGoal)
-				--boxesOnPlace; // --filledMarks;
-			if (map[row + 1][col].onGoal)
-				++boxesOnPlace; // ++filledMarks;
+			if (map[row][col].onMark)
+				--boxesOnPlace;
+			if (map[row + 1][col].onMark)
+				++boxesOnPlace;
 		}
 	}
 	else if (direction == LEFT && map[row][col - 1].state != WALL && col)
@@ -226,10 +258,10 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		}
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
-			if (map[row][col].onGoal)
-				--boxesOnPlace; // --filledMarks;
-			if (map[row][col - 1].onGoal)
-				++boxesOnPlace; //++filledMarks;
+			if (map[row][col].onMark)
+				--boxesOnPlace;
+			if (map[row][col - 1].onMark)
+				++boxesOnPlace;
 		}
 	}
 	else if (direction == RIGHT && map[row][col + 1].state != WALL &&
@@ -251,10 +283,10 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 		}
 		else if (state == BOX) //if we get to this line, the box can be moved
 		{
-			if (map[row][col].onGoal)
-				--boxesOnPlace; //--filledMarks;
-			if (map[row][col + 1].onGoal)
-				++boxesOnPlace; //++filledMarks;
+			if (map[row][col].onMark)
+				--boxesOnPlace;
+			if (map[row][col + 1].onMark)
+				++boxesOnPlace;
 		}
 	}
 	else
@@ -268,4 +300,80 @@ bool Game::levelIsValid()
 	if (boxCount > marksCount || !boxCount || playerCount != 1)
 		return false;
 	return true;
+}
+
+bool Game::findPath(int x, int y)
+{
+	vertex target = std::make_pair(y / blockHeight, x / blockWidth);
+	if (map[target.first][target.second].state != FLOOR) //we cannot step on walls or boxes
+		return false;
+	std::set<vertex> visited;
+	std::map<vertex, vertex> parent;
+
+	std::queue<vertex> wave;
+	vertex player = std::make_pair(playerPos.y / blockHeight, playerPos.x / blockWidth);
+	wave.push(player);
+	visited.insert(player);
+
+	while (!wave.empty())
+	{
+		if (BFS(wave, parent, visited, wave.front(), target))
+			return true;
+		wave.pop();
+	}
+	return false;
+}
+
+bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
+	std::set<vertex>& visited, vertex& current, vertex& target)
+{
+	if (current.first > 0 && map[current.first - 1][current.second].state == FLOOR) //up
+	{
+		vertex neighbour = std::make_pair(current.first - 1, current.second);
+		if (visited.find(neighbour) == visited.end())
+		{
+			if (neighbour == target)
+				return true;
+			wave.push(neighbour);
+			parent.insert_or_assign(neighbour, current);
+			visited.insert(neighbour);
+		}
+	}
+	if (current.first < blockRows && map[current.first + 1][current.second].state == FLOOR) //down
+	{
+		vertex neighbour = std::make_pair(current.first + 1, current.second);
+		if (visited.find(neighbour) == visited.end())
+		{
+			if (neighbour == target)
+				return true;
+			wave.push(neighbour);
+			parent.insert_or_assign(neighbour, current);
+			visited.insert(neighbour);
+		}
+	}
+	if (current.first > 0 && map[current.first][current.second - 1].state == FLOOR) //left
+	{
+		vertex neighbour = std::make_pair(current.first, current.second - 1);
+		if (visited.find(neighbour) == visited.end())
+		{
+			if (neighbour == target)
+				return true;
+			wave.push(neighbour);
+			parent.insert_or_assign(neighbour, current);
+			visited.insert(neighbour);
+		}
+	}
+	if (current.second < blockCols && map[current.first ][current.second + 1].state == FLOOR) //right
+	{
+		vertex neighbour = std::make_pair(current.first, current.second + 1);
+		if (visited.find(neighbour) == visited.end())
+		{
+			if (neighbour == target)
+				return true;
+			wave.push(neighbour);
+			parent.insert_or_assign(neighbour, current);
+			visited.insert(neighbour);
+		}
+	}
+	return false;
 }

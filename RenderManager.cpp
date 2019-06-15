@@ -130,7 +130,7 @@ void RenderManager::Render(std::vector<std::vector<Block>>& map, bool isFirstRen
 				else
 					SDL_RenderCopy(renderer, playerTexture, NULL, &currBlock.position);
 			}
-			else if (currBlock.state == FLOOR && currBlock.onGoal)
+			else if (currBlock.state == FLOOR && currBlock.onMark)
 				SDL_RenderCopy(renderer, markTexture, NULL, &currBlock.position);
 			else
 				SDL_RenderFillRect(renderer, &currBlock.position);

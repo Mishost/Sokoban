@@ -3,8 +3,13 @@
 
 #include <string>
 #include <fstream>
+#include <set>
+#include <map>
+#include <queue>
 #include "RenderManager.h"
 #include "Block.h"
+
+using vertex = std::pair<int, int>;
 
 enum Direction
 {
@@ -25,10 +30,14 @@ public:
 	bool loadLevel(const std::string level);
 
 private:
+	void validateMap();
 	void loadRow(const std::string line, unsigned int row);
 	void movePlayer(Direction direction);
 	bool move(unsigned int row, unsigned int col, Direction direction, State state);
 	bool levelIsValid();
+	bool findPath(int x, int y);
+	bool BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent, 
+		std::set<vertex>& visited, vertex& current, vertex& target);
 
 private:
 	std::vector<std::vector<Block>> map;

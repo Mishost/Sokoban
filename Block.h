@@ -19,8 +19,8 @@ struct Block
 {
 	SDL_Rect position;
 	State state;
-	bool onGoal;
-	Block(unsigned int row, unsigned int col, State state, bool onGoal);
+	bool onMark;
+	Block(unsigned int row, unsigned int col, State state, bool onMark);
 };
 
 #endif // !__BLOCK__HEADER__INCLUDED
