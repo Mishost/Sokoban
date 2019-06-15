@@ -7,10 +7,11 @@ Game::Game(const std::string level)
 	,boxCount(0)
 	,boxesOnPlace(0)
 	,playerCount(0)
+	,playerIsMoving(false)
 {
 	if (loadLevel(level))
 	{
-		renderManager.Render(map, 1, 0);
+		renderManager.Render(map, true, false);
 		validateMap();
 	}
 	else
@@ -32,6 +33,8 @@ void Game::runGame()
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
+			if (playerIsMoving)
+				continue;
 			if (event.type == SDL_QUIT)
 				loop = false;
 			else if (event.type == SDL_MOUSEBUTTONDOWN)
@@ -39,17 +42,8 @@ void Game::runGame()
 				if (event.button.x > blockCols * blockWidth ||
 					event.button.y > blockRows * blockHeight)
 					continue;
-				else if (findPath(event.button.x, event.button.y))
-				{
-					map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = FLOOR;
-					playerPos.x = event.button.x;
-					playerPos.y = event.button.y;
-					playerPos.x /= 50;
-					playerPos.x *= 50;
-					playerPos.y /= 50;
-					playerPos.y *= 50;
-					map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = PLAYER;
-				}
+				else
+					findPath(event.button.x, event.button.y);
 			}
 			else if (event.type == SDL_KEYDOWN)
 			{
@@ -301,11 +295,11 @@ bool Game::levelIsValid()
 	return true;
 }
 
-bool Game::findPath(int x, int y)
+void Game::findPath(int x, int y)
 {
 	vertex target = std::make_pair(y / blockHeight, x / blockWidth);
 	if (map[target.first][target.second].state != FLOOR) //we cannot step on walls or boxes
-		return false;
+		return;
 	std::set<vertex> visited;
 	std::map<vertex, vertex> parent;
 
@@ -317,10 +311,12 @@ bool Game::findPath(int x, int y)
 	while (!wave.empty())
 	{
 		if (BFS(wave, parent, visited, wave.front(), target))
-			return true;
+		{
+			animatePlayerMoving(parent, player, target);
+			return;
+		}
 		wave.pop();
 	}
-	return false;
 }
 
 bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
@@ -331,11 +327,11 @@ bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
 		vertex neighbour = std::make_pair(current.first - 1, current.second);
 		if (visited.find(neighbour) == visited.end())
 		{
-			if (neighbour == target)
-				return true;
 			wave.push(neighbour);
 			parent.insert_or_assign(neighbour, current);
 			visited.insert(neighbour);
+			if (neighbour == target)
+				return true;
 		}
 	}
 	if (current.first < blockRows && map[current.first + 1][current.second].state == FLOOR) //down
@@ -343,11 +339,11 @@ bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
 		vertex neighbour = std::make_pair(current.first + 1, current.second);
 		if (visited.find(neighbour) == visited.end())
 		{
-			if (neighbour == target)
-				return true;
 			wave.push(neighbour);
 			parent.insert_or_assign(neighbour, current);
 			visited.insert(neighbour);
+			if (neighbour == target)
+				return true;
 		}
 	}
 	if (current.first > 0 && map[current.first][current.second - 1].state == FLOOR) //left
@@ -355,11 +351,11 @@ bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
 		vertex neighbour = std::make_pair(current.first, current.second - 1);
 		if (visited.find(neighbour) == visited.end())
 		{
-			if (neighbour == target)
-				return true;
 			wave.push(neighbour);
 			parent.insert_or_assign(neighbour, current);
 			visited.insert(neighbour);
+			if (neighbour == target)
+				return true;
 		}
 	}
 	if (current.second < blockCols && map[current.first ][current.second + 1].state == FLOOR) //right
@@ -367,12 +363,48 @@ bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
 		vertex neighbour = std::make_pair(current.first, current.second + 1);
 		if (visited.find(neighbour) == visited.end())
 		{
-			if (neighbour == target)
-				return true;
 			wave.push(neighbour);
 			parent.insert_or_assign(neighbour, current);
 			visited.insert(neighbour);
+			if (neighbour == target)
+				return true;
 		}
 	}
 	return false;
+}
+
+void Game::animatePlayerMoving(std::map<vertex, vertex>& parent, vertex& first, vertex& target)
+{
+	playerIsMoving = true;
+	std::vector<vertex> path;
+	vertex current = target;
+	vertex temp = first;
+	while (parent.find(current) != parent.end() && (first != parent.find(current)->second))
+	{
+		path.push_back(current);
+		current = parent.find(current)->second;
+	}
+	path.push_back(current);
+	while (!path.empty())
+	{
+		current = path.back();
+		map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = FLOOR;
+
+		if (temp.first > current.first)
+			playerPos.y -= blockHeight;
+		else if (temp.first < current.first)
+			playerPos.y += blockHeight;
+		else if (temp.second > current.second) 
+			playerPos.x -= blockWidth;
+		else if (temp.second < current.second)
+			playerPos.x += blockWidth;
+
+		temp = current;
+		path.pop_back();
+
+		map[playerPos.y / blockHeight][playerPos.x / blockWidth].state = PLAYER;
+		renderManager.Render(map, false, false);
+		SDL_Delay(20);
+	}
+	playerIsMoving = false;
 }

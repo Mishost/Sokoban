@@ -35,9 +35,10 @@ private:
 	void movePlayer(Direction direction);
 	bool move(unsigned int row, unsigned int col, Direction direction, State state);
 	bool levelIsValid();
-	bool findPath(int x, int y);
+	void findPath(int x, int y);
 	bool BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent, 
 		std::set<vertex>& visited, vertex& current, vertex& target);
+	void animatePlayerMoving(std::map<vertex, vertex>& parent, vertex& current, vertex& target);
 
 private:
 	std::vector<std::vector<Block>> map;
@@ -53,5 +54,6 @@ private:
 	unsigned int boxCount;
 	unsigned int boxesOnPlace;
 	unsigned int marksCount;
+	bool playerIsMoving;
 };
 #endif // !__GAME__HEADER__INCLUDED
