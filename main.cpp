@@ -2,7 +2,8 @@
 
 int main(int argc, char* args[])
 {
-	Game game("level5.txt");
+	Game game;
 	game.runGame();
+
 	return 0;
 }

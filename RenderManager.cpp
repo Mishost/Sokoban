@@ -151,7 +151,7 @@ void RenderManager::RenderMessage(std::string msg)
 
 	if (msg == "YOU WON!")
 		textRect.x -= 50;
-	else if (msg == "The level is invalid.")
+	else 
 		textRect.x -= 150;
 
 	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);

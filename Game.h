@@ -23,13 +23,14 @@ enum Direction
 class Game
 {
 public:
-	Game(const std::string level);
+	Game();
 	~Game() = default;
 
 	void runGame();
 	bool loadLevel(const std::string level);
 
 private:
+	void clearLevelData();
 	void validateMap();
 	void loadRow(const std::string line, unsigned int row);
 	void movePlayer(Direction direction);
@@ -55,5 +56,8 @@ private:
 	unsigned int boxesOnPlace;
 	unsigned int marksCount;
 	bool playerIsMoving;
+
+	unsigned int currentLevel;
+	unsigned int levelNum;
 };
 #endif // !__GAME__HEADER__INCLUDED

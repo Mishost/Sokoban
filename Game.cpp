@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game(const std::string level)
+Game::Game()
 	:blockWidth(width)
 	,blockHeight(height)
 	,marksCount(0)
@@ -8,8 +8,10 @@ Game::Game(const std::string level)
 	,boxesOnPlace(0)
 	,playerCount(0)
 	,playerIsMoving(false)
+	,currentLevel(1)
+	,levelNum(3)
 {
-	if (loadLevel(level))
+	if (loadLevel("level1.txt"))
 	{
 		renderManager.Render(map, true, false);
 		validateMap();
@@ -73,9 +75,26 @@ void Game::runGame()
 		SDL_Delay(30); //changing the number of fps
 		if (boxCount == boxesOnPlace)
 		{
-			renderManager.RenderMessage("YOU WON!");
-			SDL_Delay(3000);
-			loop = false;
+			std::string strLevel = "Level ";
+			strLevel += std::to_string(currentLevel);
+			strLevel.append(" completed");
+			renderManager.RenderMessage(strLevel);
+			SDL_Delay(2000);
+			if (++currentLevel <= levelNum)
+			{
+				clearLevelData();
+				std::string strLevel = "level";
+				strLevel += std::to_string(currentLevel);
+				strLevel.append(".txt");
+				loadLevel(strLevel);
+				validateMap();
+			}
+			else
+			{
+				renderManager.RenderMessage("YOU WON!");
+				SDL_Delay(2000);
+				loop = false;
+			}
 		}
 	}
 }
@@ -107,6 +126,21 @@ bool Game::loadLevel(const std::string level)
 	}
 	file.close();
 	return levelIsValid();
+}
+
+void Game::clearLevelData()
+{
+	for (unsigned int i = blockRows - 1; i > 0; --i)
+	{
+		for (unsigned int j = map[i].size(); j  > 0; --j)
+			map[i].pop_back();
+		map.pop_back();
+	}
+	marksCount = 0;
+	boxCount = 0;
+	boxesOnPlace = 0;
+	playerCount = 0;
+	playerIsMoving = false;
 }
 
 void Game::validateMap()
