@@ -15,7 +15,7 @@ Game::Game(const std::string level)
 	}
 	else
 	{
-		renderManager.RenderInvalid();
+		renderManager.RenderMessage("The level is invalid.");
 		SDL_Delay(3000);
 		std::exit(-1);
 	}
@@ -36,7 +36,6 @@ void Game::runGame()
 				loop = false;
 			else if (event.type == SDL_MOUSEBUTTONDOWN)
 			{
-				std::cout << event.button.x << ' ' << event.button.y << '\n';
 				if (event.button.x > blockCols * blockWidth ||
 					event.button.y > blockRows * blockHeight)
 					continue;
@@ -80,7 +79,7 @@ void Game::runGame()
 		SDL_Delay(30); //changing the number of fps
 		if (boxCount == boxesOnPlace)
 		{
-			renderManager.gameWon();
+			renderManager.RenderMessage("YOU WON!");
 			SDL_Delay(3000);
 			loop = false;
 		}
