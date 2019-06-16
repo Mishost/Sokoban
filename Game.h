@@ -32,15 +32,17 @@ public:
 private:
 	void handleInput(bool& loop, bool& shouldFlip);
 	void update(bool& loop);
+
 	void clearLevelData();
 	void validateMap();
+	bool levelIsValid() const;
 	bool loadLevel(const std::string level);
 	void loadRow(const std::string line, const unsigned int row);
 	bool loadNextLevel();
+
 	void movePlayer(const Direction direction);
 	bool move(const unsigned int row, const unsigned int col,
 		const Direction direction, const State state);
-	bool levelIsValid() const;
 	void findPath(const int x, const int y);
 	bool BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent, 
 		std::set<vertex>& visited, vertex& current, vertex& target);

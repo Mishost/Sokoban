@@ -139,7 +139,7 @@ void RenderManager::Render(std::vector<std::vector<Block>>& map, bool isFirstRen
 	SDL_RenderPresent(renderer);
 }
 
-void RenderManager::RenderMessage(std::string msg)
+void RenderManager::RenderMessage(const std::string& msg)
 {
 	SDL_RenderClear(renderer);
 	
@@ -168,7 +168,7 @@ SDL_Texture* RenderManager::LoadTexture(const std::string& str)
 	SDL_Surface* surface = IMG_Load(str.c_str());
 
 	// SDL_Surface is just the raw pixels
-	// Convert it to a hardware-optimzed texture so we can render it
+	// Convert it to a hardware-optimized texture so we can render it
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
 	// Don't need the orignal texture, release the memory

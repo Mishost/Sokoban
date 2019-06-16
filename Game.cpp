@@ -131,7 +131,7 @@ void Game::clearLevelData()
 {
 	if (!map.empty())
 	{
-		for (unsigned int i = blockRows - 1; i > 0; --i)
+		for (int i = blockRows - 1; i >= 0; --i)
 		{
 			for (unsigned int j = map[i].size(); j > 0; --j)
 				map[i].pop_back();
