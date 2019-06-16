@@ -29,62 +29,11 @@ void Game::runGame()
 
 	while (loop)
 	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			if (playerIsMoving)
-				continue;
-			if (event.type == SDL_QUIT)
-				loop = false;
-			else if (event.type == SDL_MOUSEBUTTONDOWN)
-			{
-				if (event.button.x > blockCols * blockWidth ||
-					event.button.y > blockRows * blockHeight)
-					continue;
-				else
-					findPath(event.button.x, event.button.y);
-			}
-			else if (event.type == SDL_KEYDOWN)
-			{
-				switch (event.key.keysym.sym)
-				{
-				case SDLK_RIGHT:
-					movePlayer(RIGHT);
-					shouldFlip = true;
-					break;
-				case SDLK_LEFT:
-					movePlayer(LEFT);
-					shouldFlip = false;
-					break;
-				case SDLK_UP:
-					movePlayer(UP);
-					break;
-				case SDLK_DOWN:
-					movePlayer(DOWN);
-					break;
-				default:
-					break;
-				}
-			}
-		}
+		handleInput(loop, shouldFlip);
 		renderManager.Render(map, isFirst, shouldFlip);
 		isFirst = false;
 		SDL_Delay(30); //changing the number of fps
-		if (boxCount == boxesOnPlace)
-		{
-			std::string strLevel = "Level ";
-			strLevel += std::to_string(currentLevel);
-			strLevel.append(" completed");
-			renderManager.RenderMessage(strLevel);
-			SDL_Delay(2000);
-
-			if (!loadNextLevel())
-			{
-				renderManager.RenderMessage("YOU WON!");
-				SDL_Delay(2000);
-				loop = false;
-			}
-		}
+		update(loop);
 	}
 }
 
@@ -115,6 +64,67 @@ bool Game::loadLevel(const std::string level)
 	}
 	file.close();
 	return levelIsValid();
+}
+
+void Game::handleInput(bool& loop, bool& shouldFlip)
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		if (playerIsMoving)
+			continue;
+		if (event.type == SDL_QUIT)
+			loop = false;
+		else if (event.type == SDL_MOUSEBUTTONDOWN)
+		{
+			if (event.button.x > blockCols * blockWidth ||
+				event.button.y > blockRows * blockHeight)
+				continue;
+			else
+				findPath(event.button.x, event.button.y);
+		}
+		else if (event.type == SDL_KEYDOWN)
+		{
+			switch (event.key.keysym.sym)
+			{
+			case SDLK_RIGHT:
+				movePlayer(RIGHT);
+				shouldFlip = true;
+				break;
+			case SDLK_LEFT:
+				movePlayer(LEFT);
+				shouldFlip = false;
+				break;
+			case SDLK_UP:
+				movePlayer(UP);
+				break;
+			case SDLK_DOWN:
+				movePlayer(DOWN);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void Game::update(bool& loop)
+{
+	if (boxCount == boxesOnPlace)
+	{
+		std::string strLevel = "Level ";
+		strLevel += std::to_string(currentLevel);
+		strLevel.append(" completed");
+		renderManager.RenderMessage(strLevel);
+		SDL_Delay(2000);
+
+		if (!loadNextLevel())
+		{
+			renderManager.RenderMessage("YOU WON!");
+			SDL_Delay(2000);
+			loop = false;
+		}
+	}
 }
 
 void Game::clearLevelData()

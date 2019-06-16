@@ -30,6 +30,8 @@ public:
 	void runGame();
 
 private:
+	void handleInput(bool& loop, bool& shouldFlip);
+	void update(bool& loop);
 	void clearLevelData();
 	void validateMap();
 	bool loadLevel(const std::string level);
