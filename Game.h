@@ -3,9 +3,10 @@
 
 #include <string>
 #include <fstream>
-#include <set>
-#include <map>
-#include <queue>
+#include <queue> //for std::queue
+#include <set> //for std::set
+#include <map> //for std::map
+#include <utility> //for std::pair
 #include "RenderManager.h"
 #include "Block.h"
 
@@ -27,19 +28,22 @@ public:
 	~Game() = default;
 
 	void runGame();
-	bool loadLevel(const std::string level);
 
 private:
 	void clearLevelData();
 	void validateMap();
-	void loadRow(const std::string line, unsigned int row);
-	void movePlayer(Direction direction);
-	bool move(unsigned int row, unsigned int col, Direction direction, State state);
-	bool levelIsValid();
-	void findPath(int x, int y);
+	bool loadLevel(const std::string level);
+	void loadRow(const std::string line, const unsigned int row);
+	bool loadNextLevel();
+	void movePlayer(const Direction direction);
+	bool move(const unsigned int row, const unsigned int col,
+		const Direction direction, const State state);
+	bool levelIsValid() const;
+	void findPath(const int x, const int y);
 	bool BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent, 
 		std::set<vertex>& visited, vertex& current, vertex& target);
-	void animatePlayerMoving(std::map<vertex, vertex>& parent, vertex& current, vertex& target);
+	void animatePlayerMoving(const std::map<vertex, vertex>& parent,
+		const vertex& current, const vertex& target);
 
 private:
 	std::vector<std::vector<Block>> map;

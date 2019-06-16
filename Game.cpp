@@ -8,18 +8,15 @@ Game::Game()
 	,boxesOnPlace(0)
 	,playerCount(0)
 	,playerIsMoving(false)
-	,currentLevel(1)
+	,currentLevel(0)
 	,levelNum(3)
 {
-	if (loadLevel("level1.txt"))
-	{
+	if (loadNextLevel())
 		renderManager.Render(map, true, false);
-		validateMap();
-	}
 	else
 	{
-		renderManager.RenderMessage("The level is invalid.");
-		SDL_Delay(3000);
+		renderManager.RenderMessage("No valid levels.");
+		SDL_Delay(2000);
 		std::exit(-1);
 	}
 }
@@ -80,16 +77,8 @@ void Game::runGame()
 			strLevel.append(" completed");
 			renderManager.RenderMessage(strLevel);
 			SDL_Delay(2000);
-			if (++currentLevel <= levelNum)
-			{
-				clearLevelData();
-				std::string strLevel = "level";
-				strLevel += std::to_string(currentLevel);
-				strLevel.append(".txt");
-				loadLevel(strLevel);
-				validateMap();
-			}
-			else
+
+			if (!loadNextLevel())
 			{
 				renderManager.RenderMessage("YOU WON!");
 				SDL_Delay(2000);
@@ -130,12 +119,16 @@ bool Game::loadLevel(const std::string level)
 
 void Game::clearLevelData()
 {
-	for (unsigned int i = blockRows - 1; i > 0; --i)
+	if (!map.empty())
 	{
-		for (unsigned int j = map[i].size(); j  > 0; --j)
-			map[i].pop_back();
-		map.pop_back();
+		for (unsigned int i = blockRows - 1; i > 0; --i)
+		{
+			for (unsigned int j = map[i].size(); j > 0; --j)
+				map[i].pop_back();
+			map.pop_back();
+		}
 	}
+	
 	marksCount = 0;
 	boxCount = 0;
 	boxesOnPlace = 0;
@@ -152,7 +145,7 @@ void Game::validateMap()
 	}
 }
 
-void Game::loadRow(const std::string line, unsigned int row)
+void Game::loadRow(const std::string line, const unsigned int row)
 {
 	State currState;
 	bool onGoal = false;
@@ -200,12 +193,40 @@ void Game::loadRow(const std::string line, unsigned int row)
 			currState = FLOOR;
 			break;
 		default:
-			currState = INVALID;
+			currState = WALL;
 			break;
 		}
 		map[row].push_back(Block(row, i, currState, onGoal));
 		onGoal = false;
 	}
+}
+
+bool Game::loadNextLevel()
+{
+	clearLevelData();
+	std::string strLevel = "level";
+	strLevel += std::to_string(++currentLevel);
+	strLevel += ".txt";
+	while (currentLevel <= levelNum && !loadLevel(strLevel))
+	{
+		std::string message = "Level ";
+		message += std::to_string(currentLevel);
+		message += " is invalid.";
+		renderManager.RenderMessage(message);
+		SDL_Delay(2000);
+
+		clearLevelData();
+		
+		strLevel = "level";
+		strLevel += std::to_string(++currentLevel);
+		strLevel += ".txt";
+	}
+	if (currentLevel <= levelNum)
+	{
+		validateMap();
+		return true;
+	}
+	return false;
 }
 
 void Game::movePlayer(Direction direction)
@@ -216,7 +237,8 @@ void Game::movePlayer(Direction direction)
 	move(row, col, direction, PLAYER);
 }
 
-bool Game::move(unsigned int row, unsigned int col, Direction direction, State state)
+bool Game::move(const unsigned int row, const unsigned int col,
+	const Direction direction, const State state)
 {
 	if (direction == UP && map[row - 1][col].state != WALL && row)
 	{
@@ -322,14 +344,14 @@ bool Game::move(unsigned int row, unsigned int col, Direction direction, State s
 	return true;
 }
 
-bool Game::levelIsValid()
+bool Game::levelIsValid() const
 {
 	if (boxCount > marksCount || !boxCount || playerCount != 1)
 		return false;
 	return true;
 }
 
-void Game::findPath(int x, int y)
+void Game::findPath(const int x, const int y)
 {
 	vertex target = std::make_pair(y / blockHeight, x / blockWidth);
 	if (map[target.first][target.second].state != FLOOR) //we cannot step on walls or boxes
@@ -407,7 +429,8 @@ bool Game::BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent,
 	return false;
 }
 
-void Game::animatePlayerMoving(std::map<vertex, vertex>& parent, vertex& first, vertex& target)
+void Game::animatePlayerMoving(const std::map<vertex, vertex>& parent,
+	const vertex& first, const vertex& target)
 {
 	playerIsMoving = true;
 	std::vector<vertex> path;
