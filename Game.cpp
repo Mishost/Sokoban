@@ -250,107 +250,49 @@ void Game::movePlayer(Direction direction)
 bool Game::move(const unsigned int row, const unsigned int col,
 	const Direction direction, const State state)
 {
-	if (direction == UP && map[row - 1][col].state != WALL && row)
-	{
-		if (state == BOX && map[row - 1][col].state == BOX) //we can't move more than 1 box at a time
-			return false;
-		if (map[row - 1][col].state == BOX) //the player is below a box
-		{
-			if (row > 1 && move(row - 1, col, UP, BOX))
-				map[row - 2][col].state = BOX;
-			else
-				return false;
-		}
-		if (state == PLAYER)
-		{
-			map[row - 1][col].state = PLAYER;
-			playerPos.y -= blockHeight;
-		}
-		else if (state == BOX) //if we get to this line, the box can be moved
-		{
-			if (map[row][col].onMark)
-				--boxesOnPlace;
-			if (map[row - 1][col].onMark)
-				++boxesOnPlace;
-		}
-	}
-	else if (direction == DOWN && map[row + 1][col].state != WALL &&
-		row * blockHeight + blockHeight < renderManager.getWindowHeight())
-	{
-		if (state == BOX && map[row + 1][col].state == BOX) //we can't move more than 1 box at a time
-			return false;
-		if (map[row + 1][col].state == BOX) //the player is above a box
-		{
-			if (move(row + 1, col, DOWN, BOX))
-				map[row + 2][col].state = BOX;
-			else
-				return false;
-		}
-		if (state == PLAYER)
-		{
-			map[row + 1][col].state = PLAYER;
-			playerPos.y += blockHeight;
-		}
-		else if (state == BOX) //if we get to this line, the box can be moved
-		{
-			if (map[row][col].onMark)
-				--boxesOnPlace;
-			if (map[row + 1][col].onMark)
-				++boxesOnPlace;
-		}
-	}
-	else if (direction == LEFT && map[row][col - 1].state != WALL && col)
-	{
-		if (state == BOX && map[row][col - 1].state == BOX) //we can't move more than 1 box at a time
-			return false;
-		if (map[row][col - 1].state == BOX) //the player is above a box
-		{
-			if (move(row, col - 1, LEFT, BOX))
-				map[row][col - 2].state = BOX;
-			else
-				return false;
-		}
-		if (state == PLAYER)
-		{
-			map[row][col - 1].state = PLAYER;
-			playerPos.x -= blockWidth;
-		}
-		else if (state == BOX) //if we get to this line, the box can be moved
-		{
-			if (map[row][col].onMark)
-				--boxesOnPlace;
-			if (map[row][col - 1].onMark)
-				++boxesOnPlace;
-		}
-	}
-	else if (direction == RIGHT && map[row][col + 1].state != WALL &&
-		col * blockWidth + blockWidth < renderManager.getWindowWidth())
-	{
-		if (state == BOX && map[row][col + 1].state == BOX) //we can't move more than 1 box at a time
-			return false;
-		if (map[row][col + 1].state == BOX) //the player is above a box
-		{
-			if (move(row, col + 1, RIGHT, BOX))
-				map[row][col + 2].state = BOX;
-			else
-				return false;
-		}
-		if (state == PLAYER)
-		{
-			map[row][col + 1].state = PLAYER;
-			playerPos.x += blockWidth;
-		}
-		else if (state == BOX) //if we get to this line, the box can be moved
-		{
-			if (map[row][col].onMark)
-				--boxesOnPlace;
-			if (map[row][col + 1].onMark)
-				++boxesOnPlace;
-		}
-	}
-	else
+	if (direction == UP)
+		moveObject(row, col, -1, 0, state);
+	else if (direction == DOWN)
+		moveObject(row, col, 1, 0, state);
+	else if (direction == LEFT)
+		moveObject(row, col, 0, -1, state);
+	else if (direction == RIGHT)
+		moveObject(row, col, 0, 1, state);
+
+	return true;
+}
+
+bool Game::moveObject(const unsigned int row, const unsigned int col, int rowMovement, int colMovement, const State state)
+{
+	if ((map[row + rowMovement][col + colMovement].state == WALL) || 
+		(state == BOX && map[row + rowMovement][col + colMovement].state == BOX))
 		return false;
-	map[row][col].state = FLOOR;
+	//we can't move more than 1 box at a time
+
+	if (map[row + rowMovement][col + colMovement].state == BOX)
+	//a box is blocking the player's way
+	{
+		if (moveObject(row + rowMovement, col + colMovement, rowMovement, colMovement, BOX))
+			map[row + (rowMovement * 2)][col + (colMovement * 2)].state = BOX;
+		//the box gets placed in the right place
+		else
+			return false;
+	}
+	if (state == PLAYER)
+	{
+		//we assign the new position of the player
+		map[row + rowMovement][col + colMovement].state = PLAYER;
+		playerPos.y += (rowMovement * blockHeight);
+		playerPos.x += (colMovement * blockWidth);
+		map[row][col].state = FLOOR;
+	}
+	else if (state == BOX) //if we get to this line, the box can be moved
+	{
+		if (map[row][col].onMark)
+			--boxesOnPlace;
+		if (map[row + rowMovement][col + colMovement].onMark)
+			++boxesOnPlace;
+	}
 	return true;
 }
 

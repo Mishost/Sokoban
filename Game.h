@@ -43,6 +43,8 @@ private:
 	void movePlayer(const Direction direction);
 	bool move(const unsigned int row, const unsigned int col,
 		const Direction direction, const State state);
+	bool moveObject(const unsigned int row, const unsigned int col, int rowMovement,
+		int colMovement, const State state);
 	void findPath(const int x, const int y);
 	bool BFS(std::queue<vertex>& wave, std::map<vertex, vertex>& parent, 
 		std::set<vertex>& visited, vertex& current, vertex& target);
