@@ -214,7 +214,7 @@ void Game::loadRow(const std::string line, const unsigned int row)
 bool Game::loadNextLevel()
 {
 	clearLevelData();
-	std::string strLevel = "level";
+	std::string strLevel = "Levels\\level";
 	strLevel += std::to_string(++currentLevel);
 	strLevel += ".txt";
 	while (currentLevel <= levelNum && !loadLevel(strLevel))
